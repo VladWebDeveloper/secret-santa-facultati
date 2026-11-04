@@ -17,16 +17,16 @@ Aplicație web în limba română pentru un Secret Santa între facultăți, cu 
 
 ## Vezi designul imediat
 
-Deschide `index.html` printr-un server local (`python3 -m http.server 4173`), apoi vizitează `http://localhost:4173`. Fără configurare, aplicația pornește în **MOD DEMO**, folosind date fictive salvate doar în browser. Datele demo **nu sunt partajate** și nu reprezintă înscrieri reale.
+Deschide **`demo.html`** direct în browser pe Mac/PC: este o variantă demonstrativă autonomă, fără instalare. Sau deschide `index.html` printr-un server local (`python3 -m http.server 4173`), apoi vizitează `http://localhost:4173`. Fără configurare, aplicația pornește în **MOD DEMO**, folosind date fictive salvate doar în browser. Datele demo **nu sunt partajate** și nu reprezintă înscrieri reale.
 
 ## Configurează o aplicație REALĂ, cu înscrieri partajate
 
 1. Creează un proiect Supabase (plan gratuit este suficient pentru un eveniment mic).
 2. În **SQL Editor**, rulează `supabase/schema.sql` integral. Scriptul activează RLS, protejează datele personale și instalează toate funcțiile de înscriere și extragere.
 3. În **Authentication → Providers → Email**, asigură-te că autentificarea prin email este activă. Configurează SMTP propriu pentru mai multe înscrieri; trimiterea implicită Supabase are limite.
-4. În **Authentication → URL Configuration**, adaugă URL-ul final GitHub Pages la **Site URL** și **Redirect URLs** (de exemplu `https://UTILIZATOR.github.io/secret-santa-facultati/`).
+4. În **Authentication → URL Configuration**, adaugă URL-ul independent al aplicației (ex. un subdomeniu Vercel/Netlify) la **Site URL** și **Redirect URLs**.
 5. În `config.js`, completează `SUPABASE_URL` și cheia **publishable/anon** din **Project Settings → API Keys**. Aceste valori sunt destinate frontendului. **NU pune cheia `service_role`, `secret` sau parole aici!**
-6. Încarcă fișierele într-un repo GitHub complet separat de alte site-uri. În GitHub → repo → **Settings → Pages** alege `Deploy from a branch`, `main`, `/ (root)`. Aplicația se va publica pe `https://UTILIZATOR.github.io/secret-santa-facultati/`.
+6. Repo-ul GitHub separat există deja la `https://github.com/alvitravel-md/secret-santa-facultati`. Conectează-l la o găzduire **independentă** (Vercel, Netlify sau Cloudflare Pages) și publică directorul rădăcină drept site static. **NU activa GitHub Pages pentru acest cont:** domeniul GitHub Pages al proprietarului `alvitravel-md` moștenește domeniul `alvitravel.md`, iar această aplicație nu trebuie să interfereze cu site-ul agenției.
 7. Intră o dată cu emailul organizatorului, apoi execută în **SQL Editor** (înlocuiește adresa):
 
 ```sql
