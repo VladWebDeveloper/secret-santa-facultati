@@ -1,4 +1,3 @@
-// Completează doar URL-ul și cheia PUBLICĂ (anon/publishable) din Supabase > Project Settings > API.
-// Nu introduce niciodată cheia service_role / secret aici.
-export const SUPABASE_URL = '';
-export const SUPABASE_ANON_KEY = '';
+// Cheie PUBLICĂ Supabase, utilizabilă în browser. Nu publica niciodată service_role/secret.
+export const SUPABASE_URL = 'https://mqmqtqvjlhbfrbadxbux.supabase.co';
+export const SUPABASE_ANON_KEY = 'sb_publishable_a7fwIn5BVWcIL3IeQ_R9gA_8LCQUOxN';
