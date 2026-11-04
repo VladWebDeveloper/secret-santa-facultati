@@ -21,8 +21,9 @@ function toast(message, error = false) {
 function humanError(error) {
   const raw = error?.message || String(error);
   if (/rate limit|email rate/i.test(raw)) return 'Prea multe emailuri trimise. Încearcă puțin mai târziu.';
-  if (/invalid login|token.*expired|invalid.*otp/i.test(raw)) return 'Codul este invalid sau a expirat. Solicită un email nou.';
-  if (/duplicate key|already registered/i.test(raw)) return 'Acest email este deja înscris.';
+  if (/invalid login credentials|invalid login/i.test(raw)) return 'Emailul sau parola sunt incorecte.';
+  if (/email not confirmed/i.test(raw)) return 'Contul necesită confirmarea emailului. Contactează organizatorii.';
+  if (/duplicate key|already registered/i.test(raw)) return 'Acest email are deja cont. Apasă „Am deja cont”.';
   return raw;
 }
 async function safe(work, busyElement) {
@@ -120,7 +121,7 @@ async function load() {
       }
       if(state.isAdmin){
         const {data:list,error:listErr}=await state.client.from('participants')
-          .select('full_name,university,faculty,email,gift_ready,joined_at')
+          .select('user_id,full_name,university,faculty,email,gift_ready,joined_at')
           .order('joined_at',{ascending:true});
         if(listErr) throw listErr;
         state.attendees=list||[];
@@ -143,7 +144,8 @@ function render(){
   $('account-guest').querySelector('p').textContent=signedIn?'După ce salvezi profilul, detaliile vor apărea aici.':'Intră cu emailul tău pentru a vedea detaliile participării.';
   show('account-member',signedIn&&!!state.profile);
   show('admin-panel',signedIn&&state.isAdmin);
-  setText('nav-account',signedIn?'Contul meu':'Contul meu');
+  show('admin-activation',signedIn&&!state.isAdmin);
+  setText('nav-account','Contul meu');
   setText('header-cta',signedIn&&state.profile?'Contul meu ↗':s.registration_open?'Participă ↗':'Intră în cont ↗');
   $('header-cta').href=(signedIn&&state.profile)?'#cont':'#inscriere';
   if(signedIn){
@@ -193,7 +195,15 @@ function render(){
       const tr=document.createElement('tr');
       const cells=[person.full_name,`${person.university} · ${person.faculty}`,person.gift_ready?'✅ Da':'—'];
       cells.forEach(value=>{const td=document.createElement('td');td.textContent=value;tr.append(td);});
-      tbody.append(tr);
+      const td=document.createElement('td');
+      if(s.registration_open&&!s.draw_done){
+        const remove=document.createElement('button');
+        remove.type='button';remove.className='text-link text-button';
+        remove.textContent='Elimină';remove.dataset.userId=person.user_id;
+        remove.dataset.personName=person.full_name;
+        td.append(remove);
+      }else{td.textContent='—';}
+      tr.append(td);tbody.append(tr);
     });
   }
 }
@@ -208,32 +218,44 @@ function profileInput() {
   if(!$('consent').checked) throw Error('Este necesar acordul pentru participare.');
   return values;
 }
-async function login(){
+async function authenticate(createAccount = false){
   const email=cleanEmail($('email').value);
+  const password=$('password').value;
   if(!/^\S+@\S+\.\S+$/.test(email)) throw Error('Introdu o adresă de email validă.');
+  if(password.length<8) throw Error('Parola trebuie să aibă cel puțin 8 caractere.');
   if(DEMO){
     demo.currentEmail=email;demoSave();state.user={id:email,email};
     await load();
-    toast('Ai intrat în modul demo. Nicio informație nu este transmisă altor utilizatori.');
+    toast('Ai intrat în modul demo. Datele nu sunt partajate cu ceilalți studenți.');
     return;
   }
-  const redirectTo=new URL(window.location.pathname+window.location.search,window.location.origin).href+'#cont';
-  const {error}=await state.client.auth.signInWithOtp({email,options:{emailRedirectTo:redirectTo}});
+  const {data,error}=createAccount
+    ? await state.client.auth.signUp({email,password})
+    : await state.client.auth.signInWithPassword({email,password});
   if(error) throw error;
-  show('otp-area',true);
-  toast('Verifică emailul pentru linkul de autentificare. Dacă ai primit un cod, îl poți introduce aici.');
-}
-async function verifyOTP(){
-  if(DEMO) return;
-  const email=cleanEmail($('email').value);
-  const token=$('otp').value.trim();
-  if(!/^\d{6,8}$/.test(token)) throw Error('Introdu codul din email.');
-  const {error}=await state.client.auth.verifyOtp({email,token,type:'email'});
-  if(error) throw error;
-  const {data}=await state.client.auth.getUser();
-  state.user=data.user;
+  if(!data?.session) throw Error('Nu s-a creat sesiunea. Verifică setările de confirmare email și contactează organizatorii.');
+  state.user=data.user||data.session.user;
   await load();
-  toast('Autentificare reușită!');
+  window.location.hash=state.profile?'cont':'inscriere';
+  toast(createAccount?'Cont creat! Completează acum formularul de înscriere. 🎁':'Bine ai revenit!');
+}
+async function claimAdmin(){
+  if(!state.user) throw Error('Autentifică-te înainte de activarea rolului.');
+  const code=$('organizer-code').value.trim();
+  if(code.length<20) throw Error('Cod de organizator invalid.');
+  if(DEMO) throw Error('Activarea organizatorilor este disponibilă doar în aplicația reală.');
+  const {error}=await state.client.rpc('claim_santa_admin',{p_code:code});
+  if(error) throw error;
+  $('organizer-code').value='';
+  await load();
+  toast('Acces de organizator activat! 🎄');
+}
+async function removeParticipant(id,name){
+  if(!state.isAdmin||state.status.draw_done||!state.status.registration_open) throw Error('Nu poți elimina participanți acum.');
+  if(!window.confirm(`Elimini participantul „${name}” din eveniment? Această operațiune nu poate fi anulată.`))return;
+  if(DEMO){demo.people=demo.people.filter(p=>p.user_id!==id);demoSave();}
+  else{const {error}=await state.client.rpc('remove_santa_participant',{p_user_id:id});if(error) throw error;}
+  await load();toast('Participant eliminat din eveniment.');
 }
 async function saveProfile(event){
   event.preventDefault();
@@ -303,9 +325,14 @@ function exportCSV(){
   document.body.append(anchor);anchor.click();anchor.remove();setTimeout(()=>URL.revokeObjectURL(url),1000);
 }
 function attach(){
-  $('send-code').addEventListener('click',()=>safe(login,$('send-code')));
-  $('email').addEventListener('keydown',event=>{if(event.key==='Enter')safe(login,$('send-code'));});
-  $('verify-code').addEventListener('click',()=>safe(verifyOTP,$('verify-code')));
+  $('send-code').addEventListener('click',()=>safe(()=>authenticate(false),$('send-code')));
+  $('create-account').addEventListener('click',()=>safe(()=>authenticate(true),$('create-account')));
+  ['email','password'].forEach(id=>$(id).addEventListener('keydown',event=>{if(event.key==='Enter')safe(()=>authenticate(false),$('send-code'));}));
+  $('claim-admin').addEventListener('click',()=>safe(claimAdmin,$('claim-admin')));
+  $('admin-rows').addEventListener('click',event=>{
+    const button=event.target.closest('button[data-user-id]');
+    if(button)safe(()=>removeParticipant(button.dataset.userId,button.dataset.personName),button);
+  });
   $('profile-form').addEventListener('submit',event=>safe(()=>saveProfile(event),$('save-profile')));
   $('sign-out').addEventListener('click',()=>safe(signOut,$('sign-out')));
   $('gift-ready').addEventListener('change',()=>safe(changeGiftReady));
