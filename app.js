@@ -56,7 +56,7 @@ function toISO(dateValue) { return dateValue ? new Date(dateValue).toISOString()
 function cleanEmail(value){return value.trim().toLowerCase();}
 
 // Modul demo funcționează exclusiv pe acest dispozitiv și NU înscrie persoane reale.
-function demoSave(){ localStorage.setItem(STORAGE_KEY,JSON.stringify(demo)); }
+function demoSave(){ try {localStorage.setItem(STORAGE_KEY,JSON.stringify(demo));} catch { /* Browser privacy mode: păstrează doar în sesiunea curentă. */ } }
 function demoBoot(){
   try{ demo = JSON.parse(localStorage.getItem(STORAGE_KEY)); }catch{ demo=null; }
   if (!demo || !Array.isArray(demo.people)) {
