@@ -1,65 +1,70 @@
-# 🎁 Secret Santa Campus
+# 🎁 Secret Santa Campus — ASEM 2026
 
-Aplicație web în limba română pentru un Secret Santa între facultăți, cu înscrieri autentificate prin email, wishlist privat, repartizare sigură și administrare a evenimentului.
+Aplicație web pentru **Secret Santa între facultăți**, organizat de comunitatea studențească. Interfață în limba română, optimizată pentru mobil și desktop.
 
-## Ce face
+## Linkuri
 
-- Înscriere cu nume, universitate, facultate, email, wishlist și cadouri de evitat.
-- Autentificare fără parolă (magic link prin Supabase Auth).
-- Un singur participant per cont de email; pot exista mai mulți participanți din aceeași facultate.
-- Extragere atomică **o singură dată**, declanșată de organizator **după închiderea înscrierilor**.
-- Fiecare participant oferă un cadou unei alte persoane, fără duplicate și fără autoatribuire.
-- Maximizează potrivirile între facultăți. Dacă o facultate are peste jumătate din înscriși, unele perechi din aceeași facultate sunt matematic inevitabile.
-- Fiecare participant vede **numai** persoana proprie extrasă și wishlistul acesteia. Organizatorii văd lista și progresul cadourilor, dar interfața lor nu dezvăluie repartizările.
-- Organizatorii setează data și locul întâlnirii, închid înscrierile și pornesc extragerea.
-- Suma minimă: **100 MDL**.
-- Interfață responsive pentru telefon și desktop.
+- **Aplicație:** https://alvitravel.md/secret-santa-facultati/
+- **Cod sursă:** https://github.com/alvitravel-md/secret-santa-facultati
+- **Backend separat:** Supabase, proiect *Secret Santa Campus 2026* (referință `mqmqtqvjlhbfrbadxbux`).
 
-## Vezi designul imediat
+**Notă despre adresă:** GitHub Pages aplică automat domeniul personalizat deja configurat pe contul GitHub, de aceea aplicația se afișează la adresa de mai sus. Este un **repository și proiect Supabase complet separate**, iar codul AlviTravel nu a fost modificat.
 
-Deschide **`demo.html`** direct în browser pe Mac/PC: este o variantă demonstrativă autonomă, fără instalare. Sau deschide `index.html` printr-un server local (`python3 -m http.server 4173`), apoi vizitează `http://localhost:4173`. Fără configurare, aplicația pornește în **MOD DEMO**, folosind date fictive salvate doar în browser. Datele demo **nu sunt partajate** și nu reprezintă înscrieri reale.
+## Ce poate face un student
 
-## Configurează o aplicație REALĂ, cu înscrieri partajate
+1. Creează un cont cu email + parolă de cel puțin 8 caractere (sau se autentifică într-un cont existent).
+2. Își completează numele, universitatea, facultatea, wishlistul și eventual cadourile de evitat.
+3. Poate edita datele până la închiderea înscrierilor; după închidere poate edita doar wishlistul.
+4. După extragere, vede numai persoana extrasă, facultatea și dorințele acesteia.
+5. Poate marca acel cadou drept pregătit.
 
-1. Creează un proiect Supabase (plan gratuit este suficient pentru un eveniment mic).
-2. În **SQL Editor**, rulează `supabase/schema.sql` integral. Scriptul activează RLS, protejează datele personale și instalează toate funcțiile de înscriere și extragere.
-3. În **Authentication → Providers → Email**, asigură-te că autentificarea prin email este activă. Configurează SMTP propriu pentru mai multe înscrieri; trimiterea implicită Supabase are limite.
-4. În **Authentication → URL Configuration**, adaugă URL-ul independent al aplicației (ex. un subdomeniu Vercel/Netlify) la **Site URL** și **Redirect URLs**.
-5. În `config.js`, completează `SUPABASE_URL` și cheia **publishable/anon** din **Project Settings → API Keys**. Aceste valori sunt destinate frontendului. **NU pune cheia `service_role`, `secret` sau parole aici!**
-6. Repo-ul GitHub separat există deja la `https://github.com/alvitravel-md/secret-santa-facultati`. Conectează-l la o găzduire **independentă** (Vercel, Netlify sau Cloudflare Pages) și publică directorul rădăcină drept site static. **NU activa GitHub Pages pentru acest cont:** domeniul GitHub Pages al proprietarului `alvitravel-md` moștenește domeniul `alvitravel.md`, iar această aplicație nu trebuie să interfereze cu site-ul agenției.
-7. Intră o dată cu emailul organizatorului, apoi execută în **SQL Editor** (înlocuiește adresa):
+**Valoare minimă obligatorie a cadoului: 100 MDL.**
 
-```sql
-insert into public.admins(user_id)
-select id from auth.users where lower(email) = lower('organizator@universitate.md')
-on conflict (user_id) do nothing;
-```
+## Ce poate face un organizator
 
-8. Reîncarcă pagina și autentifică-te: acum ai panoul de organizator.
+După crearea contului, organizatorul introduce **codul privat de organizator** în secțiunea „Contul meu”. Codul se distribuie privat și nu se publică pe site.
 
-**Important:** cheia publică Supabase se poate publica în repo, dar securitatea datelor depinde de politicile RLS și de funcțiile SQL din proiect; nu dezactiva RLS. Un utilizator normal nu poate declanșa extragerea sau citi identitatea destinatarilor celorlalți.
+- Setează data, ora, locul de întâlnire și stadiul înscrierilor.
+- Consultă lista participanților și exportă CSV.
+- Elimină înscrieri greșite **numai înainte de închiderea înscrierilor**.
+- Pornește extragerea **o singură dată**. Extragerea închide definitiv înscrierile.
+- Urmărește câte cadouri au fost marcate pregătite.
 
-## Fluxul evenimentului
+## Reguli de repartizare
 
-**Înscrieri deschise** → studenții se autentifică și completează profilul → **organizatorul închide înscrierile** → **pornește extragerea** → studenții se autentifică și văd persoana extrasă → marchează cadoul drept pregătit → schimb de cadouri.
+La extragere, fiecare student devine o singură dată Secret Santa pentru un alt student și primește o singură dată un cadou. Nu există autoatribuiri sau destinatari dublați. Algoritmul maximizează perechile între facultăți diferite. Dacă o facultate are mai mult de jumătate din participanți, unele perechi din aceeași facultate sunt inevitabile.
 
-Extragerea nu se face individual la fiecare înscriere deoarece acel mecanism poate lăsa ultimul student fără destinatar corect sau poate genera repartizări duplicate.
+Extragerea este executată **atomic în PostgreSQL**, nu separat în fiecare browser. Numele persoanelor extrase sunt afișate individual, doar după finalizarea extragerii.
 
-## Teste
+## Tehnologie și securitate
+
+- **GitHub Pages:** interfață web statică (HTML, CSS, JavaScript).
+- **Supabase Auth:** înregistrare și autentificare cu email + parolă.
+- **PostgreSQL + Row Level Security (RLS):** studenții nu pot citi profilurile altor studenți; destinația se obține doar prin RPC-ul propriului cont. Adminii pot accesa lista participanților.
+- **RPC-uri cu control de acces:** înscriere, extragere, revendicare rol de organizator, eliminare participanți.
+- Codul de organizator este stocat în baza de date ca **hash SHA-256**; parola în clar nu se află în repository.
+- Cheia Supabase din `config.js` este exclusiv **publishable**, intenționată pentru frontend; nu se publică niciodată o cheie secretă/service_role.
+
+### Limitare importantă: verificarea emailului
+
+Pentru ca înscrierea să funcționeze fără furnizor SMTP plătit/configurat, **Confirm email este dezactivat**. Prin urmare, utilizatorii trebuie să își amintească parola, iar posesia adresei de email **nu este verificată**. Organizatorul trebuie să verifice înscrierile înainte de extragere și să elimine intrările nevalide. Pentru evenimente instituționale mari se recomandă ulterior SMTP propriu + confirmare email sau login instituțional.
+
+## Instalație și mentenanță
+
+Structura:
+- `index.html`, `styles.css`, `app.js`: frontend
+- `config.js`: URL Supabase și publishable key
+- `supabase/schema.sql`: schema, RLS, funcțiile de bază
+- `supabase/organizer-tools.sql`: acces organizator și moderare (conține **doar hash-ul** codului privat)
+- `demo.html`: versiune independentă, date fictive în browser. **Nu înregistrați studenți reali în demo.**
+- `tests/draw.test.mjs`: teste ale algoritmului de repartizare
+
+Pentru o nouă ediție, creează un nou eveniment / proiect; **nu reseta repartizările în timpul evenimentului**.
 
 ```bash
 npm test
 ```
 
-Testele verifică rotația de repartizare pe mii de configurații de facultăți, inclusiv cazuri în care nu se poate evita aceeași facultate.
+## Confidențialitate
 
-## Limitări operaționale
-
-- Proiectul este **un singur eveniment**. Pentru ediția de anul următor, arhivează baza de date și inițializează un proiect nou; nu reseta extragerea în mijlocul evenimentului.
-- Nicio persoană nu este notificată automat după extragere. Participanții verifică secțiunea „Contul meu”; poți trimite un anunț comun fără a dezvălui repartizările.
-- Verificarea emailului nu dovedește statutul de student. Dacă ai nevoie de acces exclusiv studenților, folosește domenii instituționale sau o verificare manuală a înscrierilor înainte de extragere.
-- Organizatorii au acces la nume și emailuri (date cu caracter personal): publică o notă de informare adecvată instituției.
-
-## Izolare
-
-Nu se face nicio modificare în repository-ul/site-ul AlviTravel. Acest proiect are propriile fișiere, autentificare și bază de date.
+Numele, emailurile, facultățile și preferințele sunt date cu caracter personal. Coordonați informarea participanților, accesul organizatorilor, păstrarea și ștergerea lor conform regulilor aplicabile. Nu divulgați codul de organizator și nici exporturile CSV în spații publice.
