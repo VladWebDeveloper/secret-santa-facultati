@@ -74,9 +74,10 @@
           <div class="form-header"><span class="form-tag">ÎNSCRIERE 2026</span><h3 id="form-title">Devino Secret Santa 🎅</h3><p id="form-subtitle">Doar câteva detalii și ești în joc.</p></div>
           <div id="auth-form">
             <label class="field-label" for="email">Adresa de email</label><input class="field" id="email" type="email" autocomplete="email" placeholder="nume@universitate.md" maxlength="254" />
-            <button class="btn btn-dark form-submit" id="send-code" type="button">Continuă cu emailul <span>→</span></button>
-            <p class="field-help">Îți trimitem un link securizat. Nu ai nevoie de parolă.</p>
-            <div id="otp-area" hidden><label class="field-label" for="otp">Codul din email (dacă este disponibil)</label><input class="field" id="otp" inputmode="numeric" autocomplete="one-time-code" maxlength="6" placeholder="Cod din 6 cifre" /><button class="btn btn-outline-dark form-submit" id="verify-code" type="button">Confirmă codul <span>→</span></button></div>
+            <label class="field-label" for="password">Parolă (minimum 8 caractere)</label><input class="field" id="password" type="password" autocomplete="current-password" minlength="8" maxlength="128" placeholder="Creează sau introdu parola ta" />
+            <button class="btn btn-dark form-submit" id="create-account" type="button">Particip prima dată · Creează cont <span>→</span></button>
+            <button class="btn btn-outline-dark form-submit" id="send-code" type="button" style="margin-top:10px">Am deja cont · Autentificare <span>→</span></button>
+            <p class="field-help">Folosește un email real și reține parola până la finalul evenimentului. Conturile nu solicită confirmare prin email în această versiune.</p>
           </div>
           <form id="profile-form" hidden>
             <div class="input-grid"><div><label class="field-label" for="full-name">Nume și prenume *</label><input class="field" id="full-name" required minlength="3" maxlength="90" placeholder="Ex. Andreea Popescu" autocomplete="name" /></div><div><label class="field-label" for="university">Universitatea *</label><input class="field" id="university" required maxlength="120" placeholder="Ex. ASEM" /></div></div>
@@ -99,19 +100,24 @@
         <div class="member-card"><div class="member-topline"><span class="form-tag">CARD DE PARTICIPANT</span><span class="member-dot">● ACTIV</span></div><div class="member-avatar">🎄</div><h3 id="member-name">—</h3><p id="member-faculty">—</p><p class="member-email" id="member-email">—</p><div class="member-actions"><a href="#inscriere" class="text-link">Editează wishlistul ↗</a><button id="sign-out" class="text-link text-button" type="button">Deconectare ↗</button></div></div>
         <div class="assignment-card" id="assignment-card"><div class="assignment-header"><span>🎁 PERSOANA TA SECRETĂ</span><span id="assignment-status" class="assignment-badge">ÎN AȘTEPTARE</span></div><div id="assignment-pending"><div class="mystery-icon">?</div><h3>Surpriza se pregătește...</h3><p>Numele va fi dezvăluit aici după ce organizatorii închid înscrierile și pornesc extragerea.</p></div><div id="assignment-revealed" hidden><div class="recipient-label">Tu vei oferi un cadou pentru</div><h3 id="recipient-name">—</h3><p id="recipient-school">—</p><div class="recipient-wishlist"><b>♡ Ce și-ar dori</b><p id="recipient-wishes">—</p></div><div id="avoid-box" class="recipient-wishlist avoid-wishlist" hidden><b>☁ Ce ar prefera să eviți</b><p id="recipient-avoid">—</p></div><label class="gift-ready"><input type="checkbox" id="gift-ready" /> Am pregătit cadoul 🎀</label><p class="tiny-note">Păstrează numele secret până la schimbul de cadouri!</p></div></div>
       </div>
+      <div id="admin-activation" class="admin-activation" hidden>
+        <h3>Faci parte din echipa de organizare?</h3>
+        <p>Introdu codul privat primit de la coordonator pentru a activa panoul de organizator.</p>
+        <div class="admin-activation-row"><input class="field" id="organizer-code" type="password" autocomplete="off" placeholder="Cod de organizator" maxlength="120" /><button class="btn btn-dark" id="claim-admin" type="button">Activează accesul</button></div>
+      </div>
       <div id="admin-panel" class="admin-panel" hidden>
-        <div class="admin-header"><div><div class="kicker">DOAR ORGANIZATORI</div><h3>Panoul de organizare</h3></div><span class="admin-chip">ADMIN</span></div>
+        <div class="admin-header"><div><div class="kicker">DOAR ORGANIZATORI</div><h3>Panoul de organizare</h3></div><div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap"><button class="btn btn-outline-dark btn-sm" id="export-csv" type="button">Exportă lista CSV</button><span class="admin-chip">ADMIN</span></div></div>
         <div class="admin-controls"><label>Data schimbului de cadouri<input class="field" type="datetime-local" id="exchange-at" /></label><label>Locul întâlnirii<input class="field" type="text" maxlength="220" id="exchange-place" placeholder="Ex. Aula universității" /></label><label class="admin-toggle"><input id="registration-open" type="checkbox" /> Înscrieri deschise</label><button class="btn btn-outline-dark" id="save-settings" type="button">Salvează detaliile</button></div>
         <div class="admin-summary"><span id="admin-stats">—</span><button id="export-csv" type="button" class="btn btn-outline-dark">Export CSV ↓</button><button id="admin-draw" type="button" class="btn btn-primary">Realizează extragerea ✨</button></div>
         <p class="field-help">Extragerea este definitivă. Fiecare student primește un destinatar unic; algoritmul preferă facultăți diferite. Persoanele nu își pot vedea reciproc extragerile.</p>
-        <div class="table-wrap"><table class="admin-table"><thead><tr><th>Student</th><th>Universitate / Facultate</th><th>Cadou pregătit</th></tr></thead><tbody id="admin-rows"></tbody></table></div>
+        <div class="table-wrap"><table class="admin-table"><thead><tr><th>Student</th><th>Universitate / Facultate</th><th>Cadou pregătit</th><th>Acțiuni</th></tr></thead><tbody id="admin-rows"></tbody></table></div>
       </div>
     </section>
 
     <section id="reguli" class="rules-section section"><div class="shell rules-layout"><div><div class="kicker">MICUL REGULAMENT</div><h2>Mai multă bucurie,<br /><em>mai puține griji.</em></h2><p>Respectăm câteva reguli simple, ca toată lumea să se simtă inclusă.</p></div><div class="rules-list"><div><span>01</span><p><b>Minimum 100 MDL.</b> Cadoul trebuie să aibă valoarea de cel puțin 100 lei moldovenești. Poți oferi mai mult dacă îți dorești.</p></div><div><span>02</span><p><b>Păstrează surpriza.</b> Nu divulga numele persoanei extrase înainte de eveniment.</p></div><div><span>03</span><p><b>Fii atent la preferințe.</b> Wishlistul este o inspirație, nu o comandă obligatorie. Evită cadourile ofensatoare.</p></div><div><span>04</span><p><b>Înscriere responsabilă.</b> Participă doar dacă poți pregăti și oferi un cadou la schimbul organizat.</p></div></div></div></section>
     <section class="closing-cta shell"><span class="closing-star">✳</span><h2>Fii motivul pentru care<br />cineva <em>zâmbește.</em></h2><a href="#inscriere" class="btn btn-dark">Intră în poveste <span>↗</span></a><span class="closing-star right">✳</span></section>
   </main>
-  <footer class="site-footer"><div class="shell footer-inner"><span class="brand footer-brand"><span class="brand-mark">✳</span><span class="brand-name">SECRET SANTA<span>CAMPUS</span></span></span><span>Făcut cu ♡ pentru comunitatea studențească · 2026</span><span>100 MDL · un zâmbet neprețuit</span></div></footer>
+  <footer class="site-footer"><div class="shell footer-inner"><span class="brand footer-brand"><span class="brand-mark">✳</span><span class="brand-name">SECRET SANTA<span>CAMPUS</span></span></span><span>Inițiativă studențească · Senatul Studențesc ASEM · 2026</span><span>100 MDL · un zâmbet neprețuit</span></div></footer>
   <script type="module" src="./app.js"></script>
 </body>
 </html>
