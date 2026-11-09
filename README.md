@@ -4,11 +4,11 @@ Aplicație web pentru **Secret Santa între facultăți**, organizat de comunita
 
 ## Linkuri
 
-- **Aplicație:** https://alvitravel.md/secret-santa-facultati/
-- **Cod sursă:** https://github.com/alvitravel-md/secret-santa-facultati
+- **Aplicație:** https://vladwebdeveloper.github.io/secret-santa-facultati/
+- **Cod sursă:** https://github.com/VladWebDeveloper/secret-santa-facultati
 - **Backend separat:** Supabase, proiect *Secret Santa Campus 2026* (referință `mqmqtqvjlhbfrbadxbux`).
 
-**Notă despre adresă:** GitHub Pages aplică automat domeniul personalizat deja configurat pe contul GitHub, de aceea aplicația se afișează la adresa de mai sus. Este un **repository și proiect Supabase complet separate**, iar codul AlviTravel nu a fost modificat.
+**Notă despre adresă:** aplicația este găzduită independent prin GitHub Pages în organizația VladWebDeveloper. Adresa veche, https://alvitravel.md/secret-santa-facultati/, redirecționează către site-ul nou. Codul principal AlviTravel și proiectul Supabase nu au fost modificate.
 
 ## Ce poate face un student
 
